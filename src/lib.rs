@@ -3,31 +3,53 @@
 #![allow(clippy::semicolon_if_nothing_returned)]
 #![allow(clippy::inline_always)] // `const fn` with added constraints is unstable.
 
-use std::{ops::Deref, pin::Pin};
+use role::Role;
+use std::{marker::PhantomData, ops::Deref, pin::Pin};
 
 #[cfg(doctest)]
 pub mod readme {
 	doc_comment::doctest!("../README.md");
 }
 
+pub mod std_impls;
+
+pub mod role {
+	//! Kinds of items that can be pinned, to disambiguate e.g. keys and values.
+
+	pub trait Role {}
+
+	pub enum Items {}
+	impl Role for Items {}
+
+	pub enum Keys {}
+	impl Role for Keys {}
+
+	pub enum Values {}
+	impl Role for Values {}
+
+	pub enum Entries {}
+	impl Role for Entries {}
+}
+
 /// A pinning wrapper for a collection type `C` that can pin-project to its items while pinned this way.
 ///
 /// Unlike when using [`Pin<&C>`](`std::pin::Pin`), this allows the collection itself to stay [`Unpin`].
 ///
-/// [`ItemsPin<C>`] acts to [`C: Items<Item = T>`](`Items`) as [`Pin<P>`](`std::pin::Pin`) does to [`P: Deref<Target = T>`](`std::ops::Deref`).
+/// [`ItemsPin<R, C>`] acts to [`C: Items<Item = T>`](`Items`) as [`Pin<P>`](`std::pin::Pin`) does to [`P: Deref<Target = T>`](`std::ops::Deref`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ItemsPin<C: ?Sized> {
+pub struct ItemsPin<R: Role, C: ?Sized> {
+	_role: PhantomData<R>,
 	collection: C,
 }
 
-impl<'a, C: Sized> ItemsPin<C>
+impl<'a, R: Role, C: Sized> ItemsPin<R, C>
 where
-	C: Items<'a>,
+	C: Items<'a, R>,
 	C::Item: Unpin,
 {
 	#[inline(always)]
-	pub fn new(collection: C) -> ItemsPin<C> {
-		Self { collection }
+	pub fn new(collection: C) -> ItemsPin<R, C> {
+		unsafe { Self::new_unchecked(collection) }
 	}
 
 	/// Unwraps this [`ItemsPin<C>`], returning the underlying collection.
@@ -35,14 +57,14 @@ where
 	/// This requires that the items inside this [`ItemsPin`] are [`Unpin`],
 	/// so that we can ignore the pinning invariants when unwrapping it.
 	#[inline(always)]
-	pub fn into_inner(items_pin: ItemsPin<C>) -> C {
+	pub fn into_inner(items_pin: ItemsPin<R, C>) -> C {
 		items_pin.collection
 	}
 }
 
-impl<'a, C: Sized> ItemsPin<C>
+impl<'a, R: Role, C: Sized> ItemsPin<R, C>
 where
-	C: Items<'a>,
+	C: Items<'a, R>,
 {
 	/// Constructs a new [`ItemsPin<P>`] around a collection of items of a type that may or may not implement [`Unpin`].
 	///
@@ -52,8 +74,11 @@ where
 	///
 	/// See [`Pin::new_unchecked`].
 	#[inline(always)]
-	pub unsafe fn new_unchecked(collection: C) -> ItemsPin<C> {
-		Self { collection }
+	pub unsafe fn new_unchecked(collection: C) -> ItemsPin<R, C> {
+		Self {
+			_role: PhantomData,
+			collection,
+		}
 	}
 
 	/// Unwraps this `ItemsPin<C>`, returning the underlying collection.
@@ -62,31 +87,31 @@ where
 	///
 	/// See [`Pin::into_inner_unchecked`].
 	#[inline(always)]
-	pub unsafe fn into_inner_unchecked(items_pin: ItemsPin<C>) -> C {
+	pub unsafe fn into_inner_unchecked(items_pin: ItemsPin<R, C>) -> C {
 		items_pin.collection
 	}
 }
 
-pub trait Items<'a> {
+pub trait Items<'a, R: Role> {
 	type Item: 'a;
 	type ItemsIter: 'a + Iterator<Item = &'a Self::Item>;
 
 	fn items(&'a self) -> Self::ItemsIter;
 }
 
-pub trait ItemsPinned<'a>: Items<'a> {
+pub trait ItemsPinned<'a, R: Role>: Items<'a, R> {
 	type ItemsPinnedIter: 'a + Iterator<Item = Pin<&'a Self::Item>>;
 
 	fn items_pinned(&'a self) -> Self::ItemsPinnedIter;
 }
 
-pub trait ItemsMut<'a>: Items<'a> {
+pub trait ItemsMut<'a, R: Role>: Items<'a, R> {
 	type ItemsMutIter: 'a + Iterator<Item = &'a mut Self::Item>;
 
 	fn items_mut(&'a mut self) -> Self::ItemsMutIter;
 }
 
-pub trait ItemsPinnedMut<'a>: ItemsPinned<'a> + ItemsMut<'a> {
+pub trait ItemsPinnedMut<'a, R: Role>: ItemsPinned<'a, R> + ItemsMut<'a, R> {
 	type ItemsPinnedMutIter: 'a + Iterator<Item = Pin<&'a mut Self::Item>>;
 
 	fn items_pinned_mut(&'a mut self) -> Self::ItemsPinnedMutIter;
@@ -108,6 +133,9 @@ where
 		Self { iter }
 	}
 
+	/// # Safety
+	///
+	/// Only safe iff all pinning invariants are upheld when each of `Iter's` [`Iterator::Item`]s is wrapped in [`Pin<_>`].
 	pub unsafe fn new_unchecked(iter: Iter) -> Self {
 		Self { iter }
 	}
@@ -127,9 +155,9 @@ where
 	}
 }
 
-impl<'a, C: ?Sized> Items<'a> for ItemsPin<C>
+impl<'a, R: Role, C: ?Sized> Items<'a, R> for ItemsPin<R, C>
 where
-	C: Items<'a>,
+	C: Items<'a, R>,
 {
 	type Item = C::Item;
 	type ItemsIter = C::ItemsIter;
@@ -139,9 +167,9 @@ where
 	}
 }
 
-impl<'a, C: ?Sized> ItemsPinned<'a> for ItemsPin<C>
+impl<'a, R: Role, C: ?Sized> ItemsPinned<'a, R> for ItemsPin<R, C>
 where
-	C: Items<'a>,
+	C: Items<'a, R>,
 {
 	type ItemsPinnedIter = PinIter<C::ItemsIter>;
 
@@ -150,9 +178,9 @@ where
 	}
 }
 
-impl<'a, C: ?Sized> ItemsMut<'a> for ItemsPin<C>
+impl<'a, R: Role, C: ?Sized> ItemsMut<'a, R> for ItemsPin<R, C>
 where
-	C: ItemsMut<'a>,
+	C: ItemsMut<'a, R>,
 {
 	type ItemsMutIter = C::ItemsMutIter;
 
@@ -161,9 +189,9 @@ where
 	}
 }
 
-impl<'a, C: ?Sized> ItemsPinnedMut<'a> for ItemsPin<C>
+impl<'a, R: Role, C: ?Sized> ItemsPinnedMut<'a, R> for ItemsPin<R, C>
 where
-	C: ItemsMut<'a>,
+	C: ItemsMut<'a, R>,
 {
 	type ItemsPinnedMutIter = PinIter<C::ItemsMutIter>;
 

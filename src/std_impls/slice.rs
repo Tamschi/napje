@@ -43,7 +43,7 @@ impl<T> ItemsPin<role::Items, [T]> {
 		}
 
 		let (a, bc) = self.collection.split_at_mut(range.start);
-		let (b, c) = bc.split_at_mut(range.end);
+		let (b, c) = bc.split_at_mut(range.len());
 		Self::pin(a).drop_in_place();
 		Self::pin(c).drop_in_place();
 		Self::pin(b)

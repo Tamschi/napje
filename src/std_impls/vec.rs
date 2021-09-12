@@ -1,14 +1,16 @@
 //! Pinning implementation for [`Vec<T>`] with [`role::Items`].
 //!
-//! The added [`ItemsPin<role::Items, Vec<T>>`] methods are
+//! The added [`ItemsPin<role::Items, Vec<T>>`](`self`) methods are:
 //!
-//! - `.leak`, which narrows [`Vec::leak`] to return [`Pin<&'static mut [T]>`](`Pin`).
+//! - `.as_slice`, which narrows [`Vec::as_slice`] to return [`&ItemsPin<role::Items; [T]>`](`super::slice`).
+//! - `.as_slice_mut`, which narrows [`Vec::as_slice_mut`] to return [`&mut ItemsPin<role::Items; [T]>`](`super::slice`).
+//! - `.leak`, which narrows [`Vec::leak`] to return [`&'static mut ItemsPin<role::Items; [T]>`](`super::slice`).
 //! - `.pop_pinned`, which drops the last value in place if possible, returning [`bool`].
 //! - `.push_pinned`, which allows limited insertions even after pinning.
 //! - `.truncate_pinned`, which forwards [`Vec::truncate`].
 
 use crate::{role, Items, ItemsMut, ItemsPin};
-use std::{pin::Pin, slice};
+use std::slice;
 
 impl<'a, T: 'a> Items<'a, role::Items> for Vec<T> {
 	type Item = T;
@@ -58,7 +60,17 @@ impl<T> ItemsPin<role::Items, Vec<T>> {
 	}
 
 	#[must_use]
-	pub fn leak(self) -> Pin<&'static mut [T]> {
-		unsafe { Pin::new_unchecked(self.collection.leak()) }
+	pub fn as_slice(&self) -> &ItemsPin<role::Items, [T]> {
+		unsafe { &*(self.collection.as_slice() as *const _ as *const _) }
+	}
+
+	#[must_use]
+	pub fn as_mut_slice(&mut self) -> &mut ItemsPin<role::Items, [T]> {
+		unsafe { &mut *(self.collection.as_mut_slice() as *mut _ as *mut _) }
+	}
+
+	#[must_use]
+	pub fn leak(self) -> &'static mut ItemsPin<role::Items, [T]> {
+		unsafe { &mut *(self.collection.leak() as *mut _ as *mut _) }
 	}
 }

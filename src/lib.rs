@@ -4,7 +4,11 @@
 #![allow(clippy::inline_always)] // `const fn` with added constraints is unstable.
 
 use role::Role;
-use std::{marker::PhantomData, ops::Deref, pin::Pin};
+use std::{
+	marker::PhantomData,
+	ops::{Deref, DerefMut},
+	pin::Pin,
+};
 
 #[cfg(doctest)]
 pub mod readme {
@@ -36,11 +40,16 @@ pub mod role {
 /// Unlike when using [`Pin<&C>`](`std::pin::Pin`), this allows the collection itself to stay [`Unpin`].
 ///
 /// [`ItemsPin<R, C>`] acts to [`C: Items<Item = T>`](`Items`) as [`Pin<P>`](`std::pin::Pin`) does to [`P: Deref<Target = T>`](`std::ops::Deref`).
+///
+/// `#[repr(transparent)]` towards `C`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ItemsPin<R: Role, C: ?Sized> {
+#[repr(transparent)]
+pub struct ItemsPin<R, C: ?Sized> {
 	_role: PhantomData<R>,
 	collection: C,
 }
+
+//TODO: Allow creation with custom roles that don't come with any pre-implemented traits, functions or methods.
 
 impl<'a, R: Role, C: Sized> ItemsPin<R, C>
 where
@@ -59,6 +68,34 @@ where
 	#[inline(always)]
 	pub fn into_inner(items_pin: ItemsPin<R, C>) -> C {
 		items_pin.collection
+	}
+
+	#[inline(always)]
+	pub fn new_ref(collection: &C) -> &ItemsPin<R, C> {
+		unsafe { &*(collection as *const C).cast() }
+	}
+
+	/// Unwraps this [`ItemsPin<C>`], returning the underlying collection.
+	///
+	/// This requires that the items inside this [`ItemsPin`] are [`Unpin`],
+	/// so that we can ignore the pinning invariants when unwrapping it.
+	#[inline(always)]
+	pub fn inner_ref(items_pin: &ItemsPin<R, C>) -> &C {
+		&items_pin.collection
+	}
+
+	#[inline(always)]
+	pub fn new_mut(collection: &mut C) -> &mut ItemsPin<R, C> {
+		unsafe { &mut *(collection as *mut C).cast() }
+	}
+
+	/// Unwraps this [`ItemsPin<C>`], returning the underlying collection.
+	///
+	/// This requires that the items inside this [`ItemsPin`] are [`Unpin`],
+	/// so that we can ignore the pinning invariants when unwrapping it.
+	#[inline(always)]
+	pub fn inner_mut(items_pin: &mut ItemsPin<R, C>) -> &mut C {
+		&mut items_pin.collection
 	}
 }
 
@@ -89,6 +126,50 @@ where
 	#[inline(always)]
 	pub unsafe fn into_inner_unchecked(items_pin: ItemsPin<R, C>) -> C {
 		items_pin.collection
+	}
+
+	/// Constructs a new [`ItemsPin<P>`] around a collection of items of a type that may or may not implement [`Unpin`].
+	///
+	/// If `collection` contains items of an [`Unpin`] type, [`ItemsPin::new`] should be used instead.
+	///
+	/// # Safety
+	///
+	/// See [`Pin::new_unchecked`].
+	#[inline(always)]
+	pub unsafe fn new_ref_unchecked(collection: &C) -> &ItemsPin<R, C> {
+		&*(collection as *const C).cast()
+	}
+
+	/// Unwraps this [`ItemsPin<C>`], returning the underlying collection.
+	///
+	/// # Safety
+	///
+	/// See [`Pin::into_inner_unchecked`].
+	#[inline(always)]
+	pub unsafe fn inner_ref_unchecked(items_pin: &ItemsPin<R, C>) -> &C {
+		&items_pin.collection
+	}
+
+	/// Constructs a new [`ItemsPin<P>`] around a collection of items of a type that may or may not implement [`Unpin`].
+	///
+	/// If `collection` contains items of an [`Unpin`] type, [`ItemsPin::new`] should be used instead.
+	///
+	/// # Safety
+	///
+	/// See [`Pin::new_unchecked`].
+	#[inline(always)]
+	pub unsafe fn new_mut_unchecked(collection: &mut C) -> &mut ItemsPin<R, C> {
+		&mut *(collection as *mut C).cast()
+	}
+
+	/// Unwraps this [`ItemsPin<C>`], returning the underlying collection.
+	///
+	/// # Safety
+	///
+	/// See [`Pin::into_inner_unchecked`].
+	#[inline(always)]
+	pub unsafe fn inner_mut_unchecked(items_pin: &mut ItemsPin<R, C>) -> &mut C {
+		&mut items_pin.collection
 	}
 }
 
@@ -197,5 +278,22 @@ where
 
 	fn items_pinned_mut(&'a mut self) -> Self::ItemsPinnedMutIter {
 		unsafe { PinIter::new_unchecked(self.collection.items_mut()) }
+	}
+}
+
+impl<R: Role, C: ?Sized> Deref for ItemsPin<R, C> {
+	type Target = C;
+
+	fn deref(&self) -> &Self::Target {
+		&self.collection
+	}
+}
+
+impl<'a, R: Role, C: Items<'a, R> + ?Sized> DerefMut for ItemsPin<R, C>
+where
+	C::Item: Unpin,
+{
+	fn deref_mut(&mut self) -> &mut Self::Target {
+		&mut self.collection
 	}
 }

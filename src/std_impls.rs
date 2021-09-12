@@ -2,3 +2,4 @@
 
 pub mod slice;
 pub mod vec;
+pub mod pin;

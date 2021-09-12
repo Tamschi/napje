@@ -173,31 +173,32 @@ where
 	}
 }
 
-pub trait Items<'a, R: Role> {
+pub trait Items<'a, R> {
 	type Item: 'a;
 	type ItemsIter: 'a + Iterator<Item = &'a Self::Item>;
 
 	fn items(&'a self) -> Self::ItemsIter;
 }
 
-pub trait ItemsPinned<'a, R: Role>: Items<'a, R> {
+pub trait ItemsPinned<'a, R>: Items<'a, R> {
 	type ItemsPinnedIter: 'a + Iterator<Item = Pin<&'a Self::Item>>;
 
 	fn items_pinned(&'a self) -> Self::ItemsPinnedIter;
 }
 
-pub trait ItemsMut<'a, R: Role>: Items<'a, R> {
+pub trait ItemsMut<'a, R>: Items<'a, R> {
 	type ItemsMutIter: 'a + Iterator<Item = &'a mut Self::Item>;
 
 	fn items_mut(&'a mut self) -> Self::ItemsMutIter;
 }
 
-pub trait ItemsPinnedMut<'a, R: Role>: ItemsPinned<'a, R> + ItemsMut<'a, R> {
+pub trait ItemsPinnedMut<'a, R>: ItemsPinned<'a, R> + ItemsMut<'a, R> {
 	type ItemsPinnedMutIter: 'a + Iterator<Item = Pin<&'a mut Self::Item>>;
 
 	fn items_pinned_mut(&'a mut self) -> Self::ItemsPinnedMutIter;
 }
 
+#[repr(transparent)]
 pub struct PinIter<Iter> {
 	iter: Iter,
 }
@@ -229,6 +230,7 @@ where
 {
 	type Item = Pin<Iter::Item>;
 
+	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item> {
 		self.iter
 			.next()

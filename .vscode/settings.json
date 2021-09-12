@@ -11,5 +11,18 @@
 		"todo!"
 	],
 	"todo-tree.regex.regex": "(($TAGS)|^\\s*- \\[ \\])",
-	"rust-analyzer.cargo.allFeatures": true
+	"rust-analyzer.cargo.allFeatures": true,
+	"cSpell.words": [
+		"andere",
+		"Fagaceae",
+		"heeft",
+		"naam",
+		"napje",
+		"napjesdragersfamilie",
+		"Nederlandse",
+		"onder",
+		"plantenfamilie",
+		"structuur",
+		"voorkomt"
+	]
 }

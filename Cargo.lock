@@ -3,17 +3,6 @@
 version = 3
 
 [[package]]
-name = "TODO_CRATE_NAME"
-version = "0.0.1"
-dependencies = [
- "cargo-husky",
- "doc-comment",
- "git_info",
- "version-sync",
- "wasm-bindgen-test",
-]
-
-[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -123,6 +112,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ee1c47aaa256ecabcaea351eae4a9b01ef39ed810004e298d2511ed284b1525"
 
 [[package]]
+name = "napje"
+version = "0.0.1"
+dependencies = [
+ "cargo-husky",
+ "doc-comment",
+ "git_info",
+ "rustversion",
+ "version-sync",
+ "wasm-bindgen-test",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -171,6 +172,12 @@ name = "regex-syntax"
 version = "0.6.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5eb417147ba9860a96cfe72a0b93bf88fee1744b5636ec99ab20c1aa9376581"
+
+[[package]]
+name = "rustversion"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61b3909d758bb75c79f23d4736fac9433868679d3ad2ea7a61e3c25cfda9a088"
 
 [[package]]
 name = "scoped-tls"

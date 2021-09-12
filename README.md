@@ -1,19 +1,23 @@
-# TODO_CRATE_NAME
+# napje
 
-[![Lib.rs](https://img.shields.io/badge/Lib.rs-*-84f)](https://lib.rs/crates/TODO_CRATE_NAME)
-[![Crates.io](https://img.shields.io/crates/v/TODO_CRATE_NAME)](https://crates.io/crates/TODO_CRATE_NAME)
-[![Docs.rs](https://docs.rs/TODO_CRATE_NAME/badge.svg)](https://docs.rs/TODO_CRATE_NAME)
+[![Lib.rs](https://img.shields.io/badge/Lib.rs-*-84f)](https://lib.rs/crates/napje)
+[![Crates.io](https://img.shields.io/crates/v/napje)](https://crates.io/crates/napje)
+[![Docs.rs](https://docs.rs/napje/badge.svg)](https://docs.rs/napje)
 
 ![Rust 1.51](https://img.shields.io/static/v1?logo=Rust&label=&message=1.51&color=grey)
-[![CI](https://github.com/Tamschi/TODO_CRATE_NAME/workflows/CI/badge.svg?branch=develop)](https://github.com/Tamschi/TODO_CRATE_NAME/actions?query=workflow%3ACI+branch%3Adevelop)
-![Crates.io - License](https://img.shields.io/crates/l/TODO_CRATE_NAME/0.0.1)
+[![CI](https://github.com/Tamschi/napje/workflows/CI/badge.svg?branch=develop)](https://github.com/Tamschi/napje/actions?query=workflow%3ACI+branch%3Adevelop)
+![Crates.io - License](https://img.shields.io/crates/l/napje/0.0.1)
 
-[![GitHub](https://img.shields.io/static/v1?logo=GitHub&label=&message=%20&color=grey)](https://github.com/Tamschi/TODO_CRATE_NAME)
-[![open issues](https://img.shields.io/github/issues-raw/Tamschi/TODO_CRATE_NAME)](https://github.com/Tamschi/TODO_CRATE_NAME/issues)
-[![open pull requests](https://img.shields.io/github/issues-pr-raw/Tamschi/TODO_CRATE_NAME)](https://github.com/Tamschi/TODO_CRATE_NAME/pulls)
-[![good first issues](https://img.shields.io/github/issues-raw/Tamschi/TODO_CRATE_NAME/good%20first%20issue?label=good+first+issues)](https://github.com/Tamschi/TODO_CRATE_NAME/contribute)
+[![GitHub](https://img.shields.io/static/v1?logo=GitHub&label=&message=%20&color=grey)](https://github.com/Tamschi/napje)
+[![open issues](https://img.shields.io/github/issues-raw/Tamschi/napje)](https://github.com/Tamschi/napje/issues)
+[![open pull requests](https://img.shields.io/github/issues-pr-raw/Tamschi/napje)](https://github.com/Tamschi/napje/pulls)
+[![good first issues](https://img.shields.io/github/issues-raw/Tamschi/napje/good%20first%20issue?label=good+first+issues)](https://github.com/Tamschi/napje/contribute)
 
-[![crev reviews](https://web.crev.dev/rust-reviews/badge/crev_count/TODO_CRATE_NAME.svg)](https://web.crev.dev/rust-reviews/crate/TODO_CRATE_NAME/)
+[![crev reviews](https://web.crev.dev/rust-reviews/badge/crev_count/napje.svg)](https://web.crev.dev/rust-reviews/crate/napje/)
+
+> > Een **napje** […] is een structuur die onder andere voorkomt bij de plantenfamilie *Fagaceae*, die de Nederlandse naam "napjesdragersfamilie" heeft.
+>
+> Dutch Wikipedia on cupules.
 
 TODO_README_DESCRIPTION
 
@@ -22,7 +26,7 @@ TODO_README_DESCRIPTION
 Please use [cargo-edit](https://crates.io/crates/cargo-edit) to always add the latest version of this library:
 
 ```cmd
-cargo add TODO_CRATE_NAME
+cargo add napje
 ```
 
 ## Example
@@ -54,7 +58,7 @@ dual licensed as above, without any additional terms or conditions.
 
 ## Versioning
 
-`TODO_CRATE_NAME` strictly follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) with the following exceptions:
+`napje` strictly follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) with the following exceptions:
 
 * The minor version will not reset to 0 on major version changes (except for v1).  
 Consider it the global feature level.
